@@ -102,11 +102,24 @@ module Roo
       end
     end
 
-    def csv_foreach(path_or_io, options, &block)
-      if is_stream?(path_or_io)
-        ::CSV.new(path_or_io, **options).each(&block)
-      else
-        ::CSV.foreach(path_or_io, **options, &block)
+    # From Ruby 2.5, options argument of CSV.new/CSV.foreach is a keyword argument.
+    # Before Ruby 2.5, that argument is a Hash.
+    # Therefore, this workaround can be removed if Ruby 2.3 and 2.4 are dropped.
+    if RUBY_VERSION >= '2.5.0'
+      def csv_foreach(path_or_io, options, &block)
+        if is_stream?(path_or_io)
+          ::CSV.new(path_or_io, **options).each(&block)
+        else
+          ::CSV.foreach(path_or_io, **options, &block)
+        end
+      end
+    else
+      def csv_foreach(path_or_io, options, &block)
+        if is_stream?(path_or_io)
+          ::CSV.new(path_or_io, options).each(&block)
+        else
+          ::CSV.foreach(path_or_io, options, &block)
+        end
       end
     end
 
